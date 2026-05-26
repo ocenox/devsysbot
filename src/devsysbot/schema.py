@@ -192,6 +192,47 @@ SECTIONS: list[dict[str, Any]] = [
         ],
     },
     {
+        "id": "access",
+        "title": "Host access & credentials",
+        "subtitle": "How you reach the host and retrieve generated credentials — no passwords in the document.",
+        "questions": [
+            {
+                "key": "access.sshd",
+                "type": "confirm",
+                "message": "Install and enable OpenSSH server (sshd) for remote access?",
+                "default": True,
+            },
+            {
+                "key": "access.ssh_pubkey",
+                "type": "text",
+                "message": "Your SSH public key to authorize (paste; blank = keep password login)",
+                "default": "",
+                "when": {"access.sshd": True},
+            },
+            {
+                "key": "access.ssh_disable_password",
+                "type": "confirm",
+                "message": "Disable SSH password login (key-only, recommended)?",
+                "default": True,
+                "when": {"access.sshd": True},
+            },
+            {
+                "key": "access.remote_desktop",
+                "type": "select",
+                "message": "Remote desktop access to a GUI?",
+                "choices": ["None (headless, smallest footprint)", "xrdp (Windows Remote Desktop)", "VNC", "NoMachine"],
+                "default": "None (headless, smallest footprint)",
+                "footprint": "A desktop environment is rarely needed for an agent-driven dev host.",
+            },
+            {
+                "key": "access.summary",
+                "type": "confirm",
+                "message": "Produce a one-time access summary (where each credential lives + first-login notes)?",
+                "default": True,
+            },
+        ],
+    },
+    {
         "id": "stages",
         "title": "Stage concept (dev / build)",
         "questions": [

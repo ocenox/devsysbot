@@ -32,6 +32,8 @@ def _decisions_table(a: dict[str, Any]) -> str:
         ("SMB + Windows shadow copies", "yes" if _yes(a, "smb.shadow_copy") else "no"),
         ("VCS", _g(a, "vcs.platform")),
         ("Branching", _g(a, "vcs.branching", "n/a")),
+        ("SSH access", "key-only" if (_yes(a, "access.sshd") and _yes(a, "access.ssh_disable_password") and _g(a, "access.ssh_pubkey")) else ("enabled" if _yes(a, "access.sshd") else "no")),
+        ("Remote desktop", _g(a, "access.remote_desktop", "None")),
         ("Build stage", "yes" if _yes(a, "stages.build") else "no"),
         ("Database (host-native)", _g(a, "db.engine")),
         ("Docker for app stacks", "yes" if _yes(a, "docker.enabled") else "no"),
@@ -123,6 +125,25 @@ def _agent_tasks(a: dict[str, Any]) -> str:
                         "`host.docker.internal`).")
     phases.append(("Host base & database", base))
 
+    if _yes(a, "access.sshd") or _g(a, "access.remote_desktop", "").startswith(("xrdp", "VNC", "NoMachine")):
+        acc = []
+        if _yes(a, "access.sshd"):
+            acc.append("Install and enable `openssh-server`.")
+            if _g(a, "access.ssh_pubkey"):
+                acc.append("Authorize the operator's SSH public key (add to `~/.ssh/authorized_keys`).")
+                if _yes(a, "access.ssh_disable_password"):
+                    acc.append("Disable SSH password authentication (key-only) and reload sshd.")
+            else:
+                acc.append("Keep SSH password login until a public key is added (do NOT lock yourself out).")
+        rd = _g(a, "access.remote_desktop", "")
+        if rd.startswith("xrdp"):
+            acc.append("Install xrdp + a lightweight desktop; reachable via the Windows Remote Desktop client.")
+        elif rd.startswith("VNC"):
+            acc.append("Install a VNC server + a lightweight desktop.")
+        elif rd.startswith("NoMachine"):
+            acc.append("Install NoMachine for remote desktop access.")
+        phases.append(("Host access", acc))
+
     proxy = _g(a, "proxy.kind")
     proxy_steps = [f"Set up the reverse proxy: {proxy}."]
     if "Apache" in proxy:
@@ -195,6 +216,13 @@ def _agent_tasks(a: dict[str, Any]) -> str:
             dash.append("Auto-regenerate it whenever services change (systemd path/timer or post-start hook).")
         phases.append(("Dashboard", dash))
 
+    if _yes(a, "access.summary"):
+        phases.append(("Handover", [
+            "Write a one-time access summary (service URLs + where each credential lives) to the "
+            "secret store directory (chmod 600, not in any repo); print it once. Never write secret "
+            "values into the repo or this document.",
+        ]))
+
     out = []
     n = 1
     for title, steps in phases:
@@ -217,6 +245,34 @@ def _secrets_checklist(a: dict[str, Any], secret_keys: list[str]) -> str:
     }
     for key in secret_keys:
         lines.append(f"- `{key}` — {label.get(key, 'secret value')}")
+    return "\n".join(lines)
+
+
+def _access_block(a: dict[str, Any]) -> str:
+    store = _g(a, "secrets.location")
+    lines = [
+        "How the operator reaches the host and obtains credentials. **No secret values "
+        "appear in this document** — generated passwords live in the secret store.",
+        "",
+    ]
+    if _yes(a, "access.sshd"):
+        if _g(a, "access.ssh_pubkey"):
+            mode = "key-only" if _yes(a, "access.ssh_disable_password") else "key + password"
+            lines.append(f"- **SSH:** your public key is authorized ({mode}). Connect with `ssh <user>@<host>`.")
+        else:
+            lines.append("- **SSH:** enabled with password login (no key was provided — add one and disable passwords).")
+    rd = _g(a, "access.remote_desktop", "")
+    if not rd.startswith("None"):
+        lines.append(f"- **Remote desktop:** {rd}.")
+    else:
+        lines.append("- **Remote desktop:** none (headless) — use SSH and the web dashboards.")
+    lines.append(f"- **Generated passwords (SMB, DB, etc.):** stored in the secret store ({store}). "
+                 "Retrieve them there (Infisical UI/CLI, or read the protected file once over SSH).")
+    lines.append("- **Portainer / admin UIs:** no password is generated — you set it on the first browser "
+                 "visit, so open it promptly after start.")
+    if _yes(a, "access.summary"):
+        lines.append("- **Access summary:** a one-time summary (URLs + where each credential lives) is written "
+                     "to the secret store directory (`chmod 600`, never in a repo) and printed once at the end.")
     return "\n".join(lines)
 
 
@@ -297,4 +353,10 @@ do not hardcode secret values; never print secret files.
 ## 7. Secrets checklist
 
 {_secrets_checklist(answers, secret_keys)}
+
+---
+
+## 8. Access & credentials
+
+{_access_block(answers)}
 """
