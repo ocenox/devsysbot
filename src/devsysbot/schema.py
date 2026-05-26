@@ -375,6 +375,70 @@ SECTIONS: list[dict[str, Any]] = [
         ],
     },
     {
+        "id": "firewall",
+        "title": "Firewall & egress control",
+        "subtitle": "Default-deny inbound; restrict where the dev host (and agent) may reach OUTBOUND.",
+        "questions": [
+            {
+                "key": "firewall.enabled",
+                "type": "confirm",
+                "message": "Set up a host firewall (default-deny inbound, allow only needed ports)?",
+                "default": True,
+            },
+            {
+                "key": "firewall.engine",
+                "type": "select",
+                "message": "Firewall engine",
+                "choices": ["ufw", "nftables"],
+                "default": "ufw",
+                "when": {"firewall.enabled": True},
+            },
+            {
+                "key": "firewall.egress",
+                "type": "select",
+                "message": "Outbound (egress) policy",
+                "choices": [
+                    "Denylist (block specific targets, otherwise open)",
+                    "Allowlist (deny outbound by default, allow only listed)",
+                    "Open outbound",
+                ],
+                "default": "Denylist (block specific targets, otherwise open)",
+                "when": {"firewall.enabled": True},
+            },
+            {
+                "key": "firewall.block",
+                "type": "checkbox",
+                "message": "Outbound targets the dev host must NEVER reach",
+                "choices": [
+                    "Cloud metadata endpoint (169.254.169.254)",
+                    "Outbound SMTP to the internet (port 25)",
+                    "Private/corporate networks (RFC1918: 10/8, 172.16/12, 192.168/16)",
+                    "Production database/hosts",
+                ],
+                "default": [
+                    "Cloud metadata endpoint (169.254.169.254)",
+                    "Outbound SMTP to the internet (port 25)",
+                    "Private/corporate networks (RFC1918: 10/8, 172.16/12, 192.168/16)",
+                ],
+                "when": {"firewall.egress": "Denylist (block specific targets, otherwise open)"},
+            },
+            {
+                "key": "firewall.block_custom",
+                "type": "text",
+                "message": "Additional hosts/CIDRs to block (comma-separated, blank = none)",
+                "default": "",
+                "when": {"firewall.egress": "Denylist (block specific targets, otherwise open)"},
+            },
+            {
+                "key": "firewall.allow",
+                "type": "text",
+                "message": "Allowed outbound destinations (comma-separated, e.g. package repos, github.com, api.anthropic.com, DNS)",
+                "default": "package repos, github.com, api.anthropic.com, DNS",
+                "when": {"firewall.egress": "Allowlist (deny outbound by default, allow only listed)"},
+            },
+        ],
+    },
+    {
         "id": "mail",
         "title": "Mail",
         "questions": [

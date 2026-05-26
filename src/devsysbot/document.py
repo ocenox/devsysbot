@@ -39,6 +39,7 @@ def _decisions_table(a: dict[str, Any]) -> str:
         ("Docker for app stacks", "yes" if _yes(a, "docker.enabled") else "no"),
         ("Portainer", "yes" if _yes(a, "docker.portainer") else "no"),
         ("Reverse proxy", _g(a, "proxy.kind")),
+        ("Firewall", (_g(a, "firewall.engine", "ufw") + ", egress: " + _g(a, "firewall.egress", "")) if _yes(a, "firewall.enabled") else "no"),
         ("DNS control", _g(a, "dns.control")),
         ("TLS source", _g(a, "tls.source")),
         ("Mail", _g(a, "mail.kind")),
@@ -91,6 +92,10 @@ def _safety_nets(a: dict[str, Any]) -> str:
                     f"{_g(a, 'testing.coverage_min')}% coverage before the build stage.")
     rows.append("- **Sandbox & permissions** — agent scoped to /code/<project>, "
                 "confirmation for destructive ops, secrets excluded from reads.")
+    if _yes(a, "firewall.enabled") and not _g(a, "firewall.egress", "").startswith("Open"):
+        rows.append("- **Firewall & egress control** — default-deny inbound; outbound restricted so the "
+                    "host/agent cannot reach the cloud metadata endpoint, send mail, or touch "
+                    "private/production networks (no exfiltration path).")
     return "\n".join(rows)
 
 
@@ -163,6 +168,20 @@ def _agent_tasks(a: dict[str, Any]) -> str:
     elif "Bring your own" in tls:
         proxy_steps.append(f"Expect certificates at `{_g(a, 'tls.byo_path')}`.")
     phases.append(("Reverse proxy & TLS", proxy_steps))
+
+    if _yes(a, "firewall.enabled"):
+        fw = [f"Enable {_g(a, 'firewall.engine', 'ufw')}: default-deny inbound; allow only SSH and the "
+              "service ports actually used."]
+        egress = _g(a, "firewall.egress", "")
+        if egress.startswith("Denylist"):
+            blocked = _g(a, "firewall.block", []) or []
+            for b in blocked:
+                fw.append(f"Block outbound: {b}.")
+            if _g(a, "firewall.block_custom"):
+                fw.append(f"Block outbound to: {_g(a, 'firewall.block_custom')}.")
+        elif egress.startswith("Allowlist"):
+            fw.append(f"Deny outbound by default; allow only: {_g(a, 'firewall.allow')}.")
+        phases.append(("Firewall & egress control", fw))
 
     if _g(a, "mail.kind") != "None":
         mail_steps = [f"Deploy {_g(a, 'mail.kind')}."]

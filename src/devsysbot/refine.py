@@ -26,7 +26,8 @@ _SYSTEM = (
     "- Add concrete, correct commands and short rationales where helpful.\n"
     "- Never invent secret values; keep secrets as names only.\n"
     "- Never use the former product brand name; use neutral terms or the OCENOX umbrella brand.\n"
-    "- Emphasise the four safety nets (ZFS snapshots, Git/branch protection, tests/CI, sandbox)."
+    "- Emphasise the five safety nets (ZFS snapshots, Git/branch protection, tests/CI, "
+    "sandbox, firewall/egress control)."
 )
 
 

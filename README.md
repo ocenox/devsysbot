@@ -51,7 +51,7 @@ workflow · dev/build stages · host-native database · Docker & footprint · re
 secrets store (existing / Infisical / file fallback) · testing & CI · agent sandbox &
 permissions · token/cost monitoring · auto-regenerated dashboard.
 
-## The four safety nets
+## The five safety nets
 
 | Layer | Protects against | Mechanism |
 |-------|------------------|-----------|
@@ -59,6 +59,7 @@ permissions · token/cost monitoring · auto-regenerated dashboard.
 | Git + branch protection | lost commits, direct `main` writes | feature branches, MR/PR + review |
 | Tests + CI | AI code that only looks runnable | lint/test/coverage gate before the build stage |
 | Sandbox & permissions | uncontrolled agent actions | scoped writes, confirmations, secrets excluded from reads |
+| Firewall & egress control | data exfiltration, credential theft | default-deny inbound; outbound can't reach cloud metadata, SMTP or private/prod networks |
 
 ## Repository layout
 
