@@ -1,0 +1,5 @@
+# Normalise line endings for the published repo.
+# Shell scripts MUST be LF — they run on Ubuntu (bootstrap via curl|bash, hooks).
+* text=auto
+*.sh text eol=lf
+bootstrap.sh text eol=lf

@@ -1,0 +1,27 @@
+{
+  "$comment": "DevSysBot template for the generated project's .claude/settings.json. Enforces the agent sandbox: secret files are unreadable, destructive ops require confirmation, and a guard hook blocks the worst footguns. Copy to <project>/.claude/settings.json and the guard script to <project>/.claude/hooks/guard.sh.",
+  "permissions": {
+    "deny": [
+      "Read(/code/.secrets/**)",
+      "Read(./.secrets/**)",
+      "Read(**/.env)"
+    ],
+    "ask": [
+      "Bash(rm -rf*)",
+      "Bash(git push*--force*)",
+      "Bash(git push*-f*)",
+      "Bash(dropdb*)",
+      "Bash(*DROP DATABASE*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": ".claude/hooks/guard.sh" }
+        ]
+      }
+    ]
+  }
+}

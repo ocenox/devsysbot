@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "devsysbot"
+version = "0.1.0"
+description = "Interview a clean host and draft a reviewable implementation hypothesis a coding agent can build."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "OCENOX" }]
+dependencies = [
+    "questionary>=2.0",
+    "rich>=13.0",
+    "anthropic>=0.40",
+]
+
+[project.scripts]
+devsysbot = "devsysbot.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

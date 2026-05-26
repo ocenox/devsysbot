@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+
+# Secrets — never commit
+.secrets/
+*.captured.env
+.env
+.env.*
+!.env.example
+
+# Generated output (review locally; do not commit unless intended)
+IMPLEMENTATION-HYPOTHESIS.md
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/

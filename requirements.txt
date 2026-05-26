@@ -1,0 +1,6 @@
+# DevSysBot runtime dependencies.
+# The CLI degrades gracefully to stdlib input() if questionary/rich are missing,
+# and skips Claude refinement if anthropic / ANTHROPIC_API_KEY are absent.
+questionary>=2.0
+rich>=13.0
+anthropic>=0.40
