@@ -67,7 +67,16 @@ pip install -q -r requirements.txt
 
 log "Starting the DevSysBot interview"
 echo
-PYTHONPATH="$DEVSYSBOT_HOME/src" python3 -m devsysbot --output "$CODE_ROOT/IMPLEMENTATION-HYPOTHESIS.md"
+# When this script is run via `curl | bash`, stdin is the script pipe, not the terminal.
+# Reconnect the interview to the controlling terminal so the interactive prompts work.
+if [ -e /dev/tty ]; then
+  PYTHONPATH="$DEVSYSBOT_HOME/src" python3 -m devsysbot \
+    --output "$CODE_ROOT/IMPLEMENTATION-HYPOTHESIS.md" < /dev/tty
+else
+  echo "No controlling terminal available. Run inside an interactive shell, e.g.:" >&2
+  echo "  PYTHONPATH=$DEVSYSBOT_HOME/src python3 -m devsysbot" >&2
+  exit 1
+fi
 
 echo
 log "Done. Review $CODE_ROOT/IMPLEMENTATION-HYPOTHESIS.md, then run 'claude' to build the environment."

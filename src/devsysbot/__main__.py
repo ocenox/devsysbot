@@ -22,6 +22,18 @@ from pathlib import Path
 from . import document, prompt, refine, wizard
 
 
+def _require_tty() -> None:
+    """Fail clearly if there is no interactive terminal (e.g. raw `curl | bash`)."""
+    if not sys.stdin.isatty():
+        sys.stderr.write(
+            "DevSysBot needs an interactive terminal.\n"
+            "If you started it via `curl ... | bash`, the installer reconnects the terminal\n"
+            "for you. To run it directly, use an interactive shell, or pass --defaults for a\n"
+            "non-interactive run with default answers.\n"
+        )
+        raise SystemExit(2)
+
+
 def _stage_secrets(secrets: dict[str, str], secrets_dir: str) -> str | None:
     """Write captured secret values to the staging store with restrictive permissions.
 
@@ -50,6 +62,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--defaults", action="store_true")
     parser.add_argument("--no-refine", action="store_true")
     args = parser.parse_args(argv)
+
+    if not args.defaults:
+        _require_tty()
 
     answers, secrets = wizard.run(non_interactive=args.defaults)
     secret_keys = sorted(secrets.keys())
