@@ -53,6 +53,18 @@ PYTHONPATH=src python -m devsysbot --no-refine     # skip the Claude step
 
 Set `ANTHROPIC_API_KEY` to enable the Claude refinement step.
 
+### Add a project later
+
+To add a single application to an environment that already exists — either scaffolded from
+a stack or cloned from an existing `.git` URL — run the focused add-project interview:
+
+```bash
+PYTHONPATH=src python -m devsysbot --add-project
+```
+
+It writes `ADD-PROJECT.md`; hand that to the agent and run the `add-project` skill. Only
+infrastructure that is missing is provisioned (idempotent) — shared services are reused.
+
 ## What it asks about
 
 Storage & ZFS snapshots · SMB with Windows "Previous Versions" · version control & Git

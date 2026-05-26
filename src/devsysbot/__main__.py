@@ -57,19 +57,31 @@ def _stage_secrets(secrets: dict[str, str], secrets_dir: str) -> str | None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="devsysbot", add_help=True)
-    parser.add_argument("--output", default="IMPLEMENTATION-HYPOTHESIS.md")
+    parser.add_argument("--output", default=None)
     parser.add_argument("--secrets-dir", default="/code/.secrets")
     parser.add_argument("--defaults", action="store_true")
     parser.add_argument("--no-refine", action="store_true")
+    parser.add_argument("--add-project", action="store_true",
+                        help="Add a single application to an existing environment")
     args = parser.parse_args(argv)
 
     if not args.defaults:
         _require_tty()
 
-    answers, secrets = wizard.run(non_interactive=args.defaults)
-    secret_keys = sorted(secrets.keys())
+    if args.add_project:
+        from .schema import APP_SECTIONS
+        answers, secrets = wizard.run(non_interactive=args.defaults, sections=APP_SECTIONS)
+        secret_keys = sorted(secrets.keys())
+        draft = document.build_add_project(answers, secret_keys)
+        default_out = "ADD-PROJECT.md"
+    else:
+        answers, secrets = wizard.run(non_interactive=args.defaults)
+        secret_keys = sorted(secrets.keys())
+        draft = document.build(answers, secret_keys)
+        default_out = "IMPLEMENTATION-HYPOTHESIS.md"
 
-    draft = document.build(answers, secret_keys)
+    if args.output is None:
+        args.output = default_out
     language = answers.get("meta.doc_language", "English")
 
     final = draft

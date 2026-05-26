@@ -64,11 +64,29 @@ SECTIONS: list[dict[str, Any]] = [
                 "default": "",
             },
             {
+                "key": "project.source",
+                "type": "select",
+                "message": "Where does the application code come from?",
+                "choices": [
+                    "New project (scaffold from a stack)",
+                    "Existing repository (clone a .git URL)",
+                ],
+                "default": "New project (scaffold from a stack)",
+            },
+            {
+                "key": "project.git_url",
+                "type": "text",
+                "message": "Git URL to clone (e.g. https://github.com/ocenox/devsysbot.git)",
+                "default": "",
+                "when": {"project.source": "Existing repository (clone a .git URL)"},
+            },
+            {
                 "key": "project.stack",
                 "type": "select",
                 "message": "Application stack",
                 "choices": STACKS,
                 "default": STACKS[0],
+                "when": {"project.source": "New project (scaffold from a stack)"},
             },
             {
                 "key": "project.stack_custom",
@@ -611,6 +629,93 @@ SECTIONS: list[dict[str, Any]] = [
                 "message": "Auto-regenerate the dashboard when services change?",
                 "default": True,
                 "when": {"dashboard.enabled": True},
+            },
+        ],
+    },
+]
+
+
+# Focused question set for adding ONE application to an existing environment
+# (`devsysbot --add-project`). It reuses the same answer keys where possible and only
+# asks what the agent needs to provision the new app idempotently (pull in missing infra).
+APP_SECTIONS: list[dict[str, Any]] = [
+    {
+        "id": "addproj",
+        "title": "Add a project to the existing environment",
+        "subtitle": "Only the new app is provisioned; existing shared infrastructure is reused.",
+        "questions": [
+            {
+                "key": "project.name",
+                "type": "text",
+                "message": "New project name (used for paths, DBs, domains)",
+                "default": "newapp",
+            },
+            {
+                "key": "project.description",
+                "type": "text",
+                "message": "One-line description",
+                "default": "",
+            },
+            {
+                "key": "project.source",
+                "type": "select",
+                "message": "Where does the application code come from?",
+                "choices": [
+                    "New project (scaffold from a stack)",
+                    "Existing repository (clone a .git URL)",
+                ],
+                "default": "Existing repository (clone a .git URL)",
+            },
+            {
+                "key": "project.git_url",
+                "type": "text",
+                "message": "Git URL to clone (e.g. https://github.com/ocenox/devsysbot.git)",
+                "default": "",
+                "when": {"project.source": "Existing repository (clone a .git URL)"},
+            },
+            {
+                "key": "project.stack",
+                "type": "select",
+                "message": "Application stack",
+                "choices": STACKS,
+                "default": STACKS[0],
+                "when": {"project.source": "New project (scaffold from a stack)"},
+            },
+            {
+                "key": "addproj.port",
+                "type": "text",
+                "message": "Port for the dev stage (blank = pick the next free one)",
+                "default": "",
+            },
+            {
+                "key": "stages.build",
+                "type": "confirm",
+                "message": "Also create a build stage for this app?",
+                "default": True,
+            },
+            {
+                "key": "addproj.db",
+                "type": "confirm",
+                "message": "Create a dedicated database for this app (on the existing host DB)?",
+                "default": True,
+            },
+            {
+                "key": "addproj.mail",
+                "type": "confirm",
+                "message": "Provision a mail account for this app (if a mail server exists)?",
+                "default": False,
+            },
+            {
+                "key": "addproj.subdomain",
+                "type": "confirm",
+                "message": "Add subdomains + reverse-proxy entries for this app?",
+                "default": True,
+            },
+            {
+                "key": "addproj.ci",
+                "type": "confirm",
+                "message": "Derive a CI pipeline for this app from the existing template?",
+                "default": True,
             },
         ],
     },

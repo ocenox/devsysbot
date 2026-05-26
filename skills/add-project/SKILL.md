@@ -10,8 +10,14 @@ established patterns so everything stays consistent.
 
 ## Steps
 
-1. Ask for: project name, stack, port, and whether a build stage is needed.
-2. Create host databases: `<project>_dev` (and `<project>_build` if requested).
+1. Ask for: project name; whether the code is **new** (scaffold from a stack) or an
+   **existing repository** (clone a `.git` URL, e.g. `https://github.com/ocenox/devsysbot.git`);
+   port; and whether a build stage is needed. If a `DevSysBot ADD-PROJECT.md` document
+   exists, read it instead of asking.
+2. Get the code in place: clone the given `.git` URL into `/code/<project>`, or scaffold
+   the chosen stack there.
+3. Create host databases: `<project>_dev` (and `<project>_build` if requested),
+   **only if they do not already exist**.
 3. Add the dev stack: bind-mount `/code/<project>`, pick a free port, wire DB/mail hosts
    via `host.docker.internal` (or host-native for Apache setups).
 4. Add reverse-proxy entries for `<service>-<stage>.<domain>` and reload the proxy.

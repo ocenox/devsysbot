@@ -81,12 +81,17 @@ def _default_value(question: dict[str, Any]) -> Any:
     return question.get("default", "")
 
 
-def run(non_interactive: bool = False) -> tuple[dict[str, Any], dict[str, str]]:
-    """Execute the full interview and return (answers, secrets).
+def run(
+    non_interactive: bool = False,
+    sections: list[dict[str, Any]] | None = None,
+) -> tuple[dict[str, Any], dict[str, str]]:
+    """Execute the interview and return (answers, secrets).
 
-    When ``non_interactive`` is True, every question is answered with its default and no
-    secrets are captured — used for smoke tests and CI.
+    ``sections`` selects the question set (defaults to the full ``SECTIONS``; pass
+    ``APP_SECTIONS`` for the add-project flow). When ``non_interactive`` is True every
+    question is answered with its default and no secrets are captured — for tests/CI.
     """
+    sections = sections if sections is not None else SECTIONS
     answers: dict[str, Any] = {}
     secrets: dict[str, str] = {}
 
@@ -96,7 +101,7 @@ def run(non_interactive: bool = False) -> tuple[dict[str, Any], dict[str, str]]:
         try:
             from . import tui
 
-            result = tui.run(SECTIONS)
+            result = tui.run(sections)
             if result is None:
                 raise KeyboardInterrupt  # user cancelled the TUI
             return result
@@ -109,7 +114,7 @@ def run(non_interactive: bool = False) -> tuple[dict[str, Any], dict[str, str]]:
         prompt.pause()
 
     asked = 0
-    for section in SECTIONS:
+    for section in sections:
         for question in section["questions"]:
             condition = question.get("when")
             if condition and not _matches(condition, answers):
