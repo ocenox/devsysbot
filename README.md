@@ -22,15 +22,25 @@ can execute to provision a complete, secure development environment.
 
 ## Quick start
 
-On a clean Ubuntu host:
+On a clean Ubuntu host you need either `curl` or `wget` to fetch the bootstrap (the
+bootstrap installs everything else). A minimal Ubuntu may have neither.
+
+With `wget`:
+
+```bash
+wget -qO- https://raw.githubusercontent.com/ocenox/devsysbot/main/bootstrap.sh | bash
+```
+
+With `curl` (install it first if missing: `sudo apt update && sudo apt install -y curl`):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ocenox/devsysbot/main/bootstrap.sh | bash
 ```
 
-The bootstrap installs Python, Node and Claude Code, fetches DevSysBot, runs the
-interview, and writes `IMPLEMENTATION-HYPOTHESIS.md`. Then review it and run `claude` to
-build the environment.
+The bootstrap installs Python, Node and Claude Code, fetches DevSysBot into `/devsysbot`,
+runs the interview, and writes the hypothesis to `/devsysbot/docs/`. It then prints a
+ready-to-paste prompt to start the build with Claude Code. Nothing is written into `/code`
+— the agent creates that as a ZFS mount and populates it afterwards.
 
 ### Run it manually
 
