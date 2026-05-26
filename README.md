@@ -25,7 +25,7 @@ can execute to provision a complete, secure development environment.
 On a clean Ubuntu host:
 
 ```bash
-curl -fsSL https://example.com/devsysbot/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ocenox/devsysbot/main/bootstrap.sh | bash
 ```
 
 The bootstrap installs Python, Node and Claude Code, fetches DevSysBot, runs the

@@ -2,7 +2,7 @@
 #
 # DevSysBot bootstrap — run on a clean Ubuntu host:
 #
-#     curl -fsSL https://example.com/devsysbot/bootstrap.sh | bash
+#     curl -fsSL https://raw.githubusercontent.com/ocenox/devsysbot/main/bootstrap.sh | bash
 #
 # Installs the prerequisites (Python, Node, Claude Code), fetches DevSysBot, and starts
 # the interview. Idempotent: safe to run again. Override defaults via environment:
