@@ -106,8 +106,9 @@ SECTIONS: list[dict[str, Any]] = [
             },
             {
                 "key": "zfs.device",
-                "type": "text",
-                "message": "Target disk/partition (left as assumption, confirm later)",
+                "type": "select",
+                "dynamic": "block_devices",
+                "message": "Target disk/partition for /code (pick from detected devices)",
                 "default": "/dev/sdb",
                 "when": {"zfs.enabled": True},
             },

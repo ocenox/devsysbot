@@ -181,6 +181,9 @@ def _agent_tasks(a: dict[str, Any]) -> str:
                 fw.append(f"Block outbound to: {_g(a, 'firewall.block_custom')}.")
         elif egress.startswith("Allowlist"):
             fw.append(f"Deny outbound by default; allow only: {_g(a, 'firewall.allow')}.")
+        if _yes(a, "docker.enabled") and not egress.startswith("Open"):
+            fw.append("Anchor egress rules in the iptables `DOCKER-USER` chain — Docker writes its "
+                      "own rules and bypasses ufw, so container traffic is only filtered there.")
         phases.append(("Firewall & egress control", fw))
 
     if _g(a, "mail.kind") != "None":

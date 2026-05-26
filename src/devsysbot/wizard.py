@@ -13,8 +13,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from . import prompt
+from . import devices, prompt
 from .schema import SECTIONS
+
+_MANUAL = "Other (enter manually)"
 
 
 def _matches(condition: dict[str, Any], answers: dict[str, Any]) -> bool:
@@ -33,6 +35,16 @@ def _ask(question: dict[str, Any], answers: dict[str, Any]) -> Any:
     qtype = question["type"]
     message = question["message"]
     default = question.get("default")
+
+    if question.get("dynamic") == "block_devices":
+        rows = devices.list_block_devices()
+        if rows:
+            choice = prompt.select(message, rows + [_MANUAL], default=rows[0])
+            if choice == _MANUAL:
+                return prompt.text("Enter device path", default=default or "")
+            return devices.device_path(choice)
+        # No detection possible (e.g. non-Linux) — fall back to free text.
+        return prompt.text(message + " (could not detect devices; enter path)", default=default or "")
 
     if qtype == "text":
         return prompt.text(message, default=default or "")
