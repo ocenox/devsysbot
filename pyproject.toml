@@ -11,6 +11,9 @@ requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [{ name = "OCENOX" }]
 dependencies = [
+    "textual>=0.60",
+    "rich-pixels>=3.0",
+    "pillow>=10.0",
     "questionary>=2.0",
     "rich>=13.0",
     "anthropic>=0.40",
@@ -21,3 +24,6 @@ devsysbot = "devsysbot.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+devsysbot = ["assets/*"]

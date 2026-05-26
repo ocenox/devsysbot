@@ -119,10 +119,17 @@ def markdown(text: str) -> None:
         print(text)
 
 
+def _require(result: object):
+    """questionary returns None when the user aborts (Ctrl+C / ESC). Treat that as a quit."""
+    if result is None:
+        raise KeyboardInterrupt
+    return result
+
+
 def text(question: str, default: str = "") -> str:
     """Freitext-Eingabe."""
     if _HAS_QUESTIONARY:
-        return (questionary.text(question, default=default).ask() or "").strip()
+        return str(_require(questionary.text(question, default=default).ask())).strip()
     suffix = f" [{default}]" if default else ""
     answer = input(f"{question}{suffix}: ").strip()
     return answer or default
@@ -131,8 +138,7 @@ def text(question: str, default: str = "") -> str:
 def confirm(question: str, default: bool = True) -> bool:
     """Ja/Nein-Frage."""
     if _HAS_QUESTIONARY:
-        result = questionary.confirm(question, default=default).ask()
-        return bool(default if result is None else result)
+        return bool(_require(questionary.confirm(question, default=default).ask()))
     hint = "J/n" if default else "j/N"
     answer = input(f"{question} ({hint}): ").strip().lower()
     if not answer:
@@ -143,9 +149,9 @@ def confirm(question: str, default: bool = True) -> bool:
 def select(question: str, choices: Sequence[str], default: str | None = None) -> str:
     """Einfachauswahl aus einer Liste."""
     if _HAS_QUESTIONARY:
-        return questionary.select(
+        return str(_require(questionary.select(
             question, choices=list(choices), default=default or choices[0]
-        ).ask()
+        ).ask()))
     print(f"\n{question}")
     for idx, choice in enumerate(choices, start=1):
         marker = " (Standard)" if choice == default else ""
@@ -162,7 +168,7 @@ def select(question: str, choices: Sequence[str], default: str | None = None) ->
 def checkbox(question: str, choices: Sequence[str]) -> list[str]:
     """Mehrfachauswahl."""
     if _HAS_QUESTIONARY:
-        return questionary.checkbox(question, choices=list(choices)).ask() or []
+        return list(_require(questionary.checkbox(question, choices=list(choices)).ask()))
     print(f"\n{question} (Mehrfachauswahl, Nummern mit Komma getrennt)")
     for idx, choice in enumerate(choices, start=1):
         print(f"  {idx}) {choice}")

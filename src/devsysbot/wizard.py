@@ -91,6 +91,20 @@ def run(non_interactive: bool = False) -> tuple[dict[str, Any], dict[str, str]]:
     secrets: dict[str, str] = {}
 
     if not non_interactive:
+        # Preferred: full-screen Textual UI. Fall back to the rich/questionary flow if
+        # Textual is unavailable or the app fails to start — so the tool always works.
+        try:
+            from . import tui
+
+            result = tui.run(SECTIONS)
+            if result is None:
+                raise KeyboardInterrupt  # user cancelled the TUI
+            return result
+        except KeyboardInterrupt:
+            raise
+        except Exception:
+            pass  # fall through to the plain flow
+
         prompt.welcome(WELCOME_INTRO, DISCLAIMER)
         prompt.pause()
 
