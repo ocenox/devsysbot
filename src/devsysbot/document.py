@@ -105,8 +105,11 @@ def _agent_tasks(a: dict[str, Any]) -> str:
 
     if _yes(a, "zfs.enabled"):
         steps = [
+            "Ensure `/code` is empty first (DevSysBot itself lives in `/devsysbot`, not here). "
+            "If `/code` already contains files, move them aside — a ZFS mount would shadow them.",
             f"Create ZFS pool `{_g(a, 'zfs.pool')}` on `{_g(a, 'zfs.device')}` and dataset "
-            f"`{_g(a, 'zfs.dataset')}` mounted at `/code`.",
+            f"`{_g(a, 'zfs.dataset')}` mounted at `/code`. Mount it **before** populating `/code`.",
+            "Only after the mount exists, clone/move the application code into `/code/<project>`.",
         ]
         if _yes(a, "zfs.autosnapshot"):
             steps.append("Install `zfs-auto-snapshot`; set the `frequent` interval to 10 minutes; "
@@ -220,6 +223,9 @@ def _agent_tasks(a: dict[str, Any]) -> str:
     else:
         sec_steps.append("Create `/code/.secrets` (chmod 700, files 600), outside any repo, in `.gitignore`"
                          + ("; encrypt with sops+age." if _yes(a, "secrets.encrypt_files") else "."))
+    sec_steps.append("If DevSysBot staged any secrets during the interview "
+                     "(`/devsysbot/.secrets/devsysbot.captured.env`), import them into the store now, "
+                     "then remove the staged file.")
     sec_steps.append("Install `.claude/settings.json` with: redaction hook, no-hardcoding rule, "
                      "read-deny on `/code/.secrets/**`"
                      + (", pre-commit gitleaks scan." if _yes(a, "sandbox.secret_scan") else "."))
@@ -300,8 +306,10 @@ def _access_block(a: dict[str, Any]) -> str:
 
 def _assumptions(a: dict[str, Any]) -> str:
     items = ["Target host is a clean Ubuntu system; the operator runs the agent with sudo where needed."]
+    items.append("DevSysBot and this document live in `/devsysbot` (outside `/code`).")
     if _yes(a, "zfs.enabled"):
         items.append(f"Disk `{_g(a, 'zfs.device')}` is available and may be formatted for ZFS — confirm before running.")
+        items.append("`/code` is empty and will become the ZFS mountpoint; it is populated only after mounting.")
     if _g(a, "dns.control") != "No DNS control (local only)":
         items.append(f"Domain `{_g(a, 'stages.domain')}` is under your control via: {_g(a, 'dns.control')}.")
     if _g(a, "vcs.platform") == "GitLab (self-hosted)":
