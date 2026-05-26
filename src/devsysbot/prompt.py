@@ -8,7 +8,22 @@ der Assistent auch auf einem jungfräulichen System ohne `pip install` lauffähi
 
 from __future__ import annotations
 
+import os
 from typing import Sequence
+
+# OCENOX brand colours (see corporate identity).
+_BLUE = "#295F7C"     # Ocean Blue — titles, frames
+_ACCENT = "#3B8AB4"   # Horizon Blue — accents, wordmark
+_DIM = "#6B7380"      # Fog Grey — secondary text
+_AMBER = "#E8A13C"    # Amber — warnings
+
+OCENOX_LOGO = r"""
+   ___   ___ ___ _  _  _____  __
+  / _ \ / __| __| \| |/ _ \ \/ /
+ | (_) | (__| _|| .` | (_) >  <
+  \___/ \___|___|_|\_|\___/_/\_\
+        D E V   S Y S   B O T
+"""
 
 try:  # bevorzugte, hübsche Variante
     import questionary
@@ -27,6 +42,14 @@ except ImportError:  # pragma: no cover
     _console = None
 
 
+def clear() -> None:
+    """Clear the screen for a clean, one-question-at-a-time feel."""
+    if _console:
+        _console.clear()
+    else:
+        os.system("cls" if os.name == "nt" else "clear")
+
+
 def info(message: str) -> None:
     """Gibt eine Hinweiszeile aus."""
     if _console:
@@ -35,13 +58,53 @@ def info(message: str) -> None:
         print(message)
 
 
+def welcome(intro: str, disclaimer: str) -> None:
+    """Show the logo, a short intro and the disclaimer on a clean screen."""
+    clear()
+    if _console:
+        _console.print(OCENOX_LOGO, style=f"bold {_ACCENT}")
+        _console.print(Panel(intro, border_style=_BLUE, title="What this is", title_align="left"))
+        _console.print(Panel(disclaimer, border_style=_AMBER, title="Disclaimer", title_align="left"))
+    else:
+        print(OCENOX_LOGO)
+        print(intro)
+        print("\nDisclaimer: " + disclaimer)
+
+
+def pause(message: str = "Press Enter to begin…") -> None:
+    """Wait for the user to acknowledge the welcome screen."""
+    try:
+        input(f"\n{message} ")
+    except EOFError:  # pragma: no cover
+        pass
+
+
+def header(title: str, subtitle: str = "", progress: str = "") -> None:
+    """Clear and render a compact per-question header so each question stands alone."""
+    clear()
+    if _console:
+        line = f"[bold {_ACCENT}]DevSysBot[/]  [{_DIM}]· by OCENOX[/]"
+        if progress:
+            line += f"   [{_DIM}]{progress}[/]"
+        _console.print(line)
+        _console.rule(style=_BLUE)
+        _console.print(f"[bold {_BLUE}]{title}[/]")
+        if subtitle:
+            _console.print(f"[{_DIM}]{subtitle}[/]")
+        _console.print()
+    else:
+        print(f"\n=== DevSysBot — {title} ===")
+        if subtitle:
+            print(subtitle)
+
+
 def banner(title: str, subtitle: str = "") -> None:
     """Zeigt eine hervorgehobene Überschrift."""
     if _console:
         body = f"[bold]{title}[/bold]"
         if subtitle:
-            body += f"\n[dim]{subtitle}[/dim]"
-        _console.print(Panel(body, expand=False, border_style="cyan"))
+            body += f"\n[{_DIM}]{subtitle}[/]"
+        _console.print(Panel(body, expand=False, border_style=_BLUE))
     else:
         print(f"\n=== {title} ===")
         if subtitle:

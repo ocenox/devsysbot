@@ -18,6 +18,21 @@ from .schema import SECTIONS
 
 _MANUAL = "Other (enter manually)"
 
+WELCOME_INTRO = (
+    "DevSysBot interviews you about a development environment and writes a reviewable "
+    "[bold]implementation hypothesis[/] — a document a coding agent (e.g. Claude Code) can "
+    "then build into a complete, secure setup.\n\n"
+    "It [bold]builds nothing itself[/]. You answer a few questions, review the generated "
+    "document, and only then hand it to the agent. Each question stands on its own — "
+    "use the arrow keys to choose, Enter to confirm, Space to toggle multi-select."
+)
+
+DISCLAIMER = (
+    "Provided as-is under the MIT license, with [bold]no warranty of any kind[/]. You are "
+    "solely responsible for what you run on your systems. Always review the generated "
+    "document before letting an agent execute it."
+)
+
 
 def _matches(condition: dict[str, Any], answers: dict[str, Any]) -> bool:
     """Return True if every entry in ``condition`` matches the collected answers."""
@@ -76,14 +91,11 @@ def run(non_interactive: bool = False) -> tuple[dict[str, Any], dict[str, str]]:
     secrets: dict[str, str] = {}
 
     if not non_interactive:
-        prompt.banner(
-            "DevSysBot",
-            "Answer a few questions; I will draft a reviewable implementation hypothesis "
-            "that a coding agent can then build.",
-        )
+        prompt.welcome(WELCOME_INTRO, DISCLAIMER)
+        prompt.pause()
 
+    asked = 0
     for section in SECTIONS:
-        section_shown = False
         for question in section["questions"]:
             condition = question.get("when")
             if condition and not _matches(condition, answers):
@@ -97,12 +109,11 @@ def run(non_interactive: bool = False) -> tuple[dict[str, Any], dict[str, str]]:
                     answers[question["key"]] = value
                 continue
 
-            if not section_shown:
-                prompt.banner(section["title"], section.get("subtitle", ""))
-                section_shown = True
+            asked += 1
+            prompt.header(section["title"], section.get("subtitle", ""), progress=f"Question {asked}")
 
             if question.get("footprint"):
-                prompt.info(f"  [dim]footprint:[/dim] {question['footprint']}")
+                prompt.info(f"[#6B7380]ℹ {question['footprint']}[/]\n")
 
             value = _ask(question, answers)
 
