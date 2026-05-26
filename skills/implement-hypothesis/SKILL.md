@@ -9,7 +9,8 @@ You build a development environment from an approved `IMPLEMENTATION-HYPOTHESIS.
 
 ## Steps
 
-1. Read `IMPLEMENTATION-HYPOTHESIS.md` (look in the current dir and in `/code`).
+1. Read the hypothesis document. Files are timestamped (`IMPLEMENTATION-HYPOTHESIS-*.md`);
+   use the **newest** one. Look in `/devsysbot/docs`, the current dir and `/code`.
 2. Confirm the **Assumptions & open points** with the user before any destructive action
    (especially disk/ZFS device and domain/DNS).
 3. Work the **Agent task list** in phase order. After each phase, run a quick check and

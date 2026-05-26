@@ -17,6 +17,7 @@ import argparse
 import os
 import stat
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from . import document, prompt, refine, wizard
@@ -95,15 +96,16 @@ def main(argv: list[str] | None = None) -> int:
         elif not args.defaults:
             prompt.info("[dim]No ANTHROPIC_API_KEY set — using the deterministic draft.[/dim]")
 
-    # Review step (interactive only)
-    if not args.defaults:
-        prompt.banner("Preview", "Review the draft below, then confirm to write it.")
-        prompt.markdown(final)
-        if not prompt.confirm("Write this document?", default=True):
-            prompt.info("Aborted. Nothing written.")
-            return 1
-
-    out_path = Path(args.output)
+    # Always write — append a timestamp so repeated runs never overwrite each other.
+    base = Path(args.output)
+    suffix = base.suffix or ".md"
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    out_path = base.with_name(f"{base.stem}-{stamp}{suffix}")
+    counter = 1
+    while out_path.exists():  # never overwrite, even on back-to-back runs
+        out_path = base.with_name(f"{base.stem}-{stamp}-{counter}{suffix}")
+        counter += 1
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(final, encoding="utf-8")
 
     staged = _stage_secrets(secrets, args.secrets_dir)
@@ -112,7 +114,7 @@ def main(argv: list[str] | None = None) -> int:
         if staged:
             prompt.info(f"[green]Staged {len(secrets)} secret(s) to[/green] {staged} "
                         f"[dim](import into your store; never commit)[/dim]")
-        prompt.info("\nNext: review the document, then run your coding agent to build the environment.")
+        prompt.info("Review it, then run your coding agent to build the environment.")
     else:
         print(f"wrote {out_path}")
 

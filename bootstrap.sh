@@ -90,20 +90,26 @@ else
   exit 1
 fi
 
+DOCS_DIR="$(dirname "$HYPOTHESIS_OUT")"
+# The document is timestamped, so each run keeps its own file. Find the newest one.
+LATEST="$(ls -t "$DOCS_DIR"/IMPLEMENTATION-HYPOTHESIS-*.md 2>/dev/null | head -n1)"
+LATEST="${LATEST:-$DOCS_DIR/IMPLEMENTATION-HYPOTHESIS-*.md}"
+
 echo
 log "Done. Review the document, then start the build with Claude Code:"
 echo
-echo "  1) Review:  $HYPOTHESIS_OUT"
+echo "  1) Review:  $LATEST"
 echo "  2) Launch:  cd $DEVSYSBOT_HOME && claude"
 echo "  3) Paste this prompt to start the implementation:"
 echo
 cat <<EOF
   ----------------------------------------------------------------------------
-  Read $HYPOTHESIS_OUT and implement it phase by phase using the
-  "implement-hypothesis" skill. First confirm the assumptions in section 3
-  (disk/ZFS device, domains, DNS) with me before any destructive action.
-  Create $CODE_ROOT as the ZFS mount and populate it only after mounting.
-  Do not write to main, do not hardcode secrets, never print secret files.
+  Read the newest IMPLEMENTATION-HYPOTHESIS-*.md in $DOCS_DIR and implement it
+  phase by phase using the "implement-hypothesis" skill. First confirm the
+  assumptions in section 3 (disk/ZFS device, domains, DNS) with me before any
+  destructive action. Create $CODE_ROOT as the ZFS mount and populate it only
+  after mounting. Do not write to main, do not hardcode secrets, never print
+  secret files.
   ----------------------------------------------------------------------------
 EOF
 echo
